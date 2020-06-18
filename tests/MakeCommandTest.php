@@ -2,8 +2,6 @@
 
 namespace Foris\Easy\Console\Tests;
 
-use Foris\Easy\Console\Commands\Command;
-use Foris\Easy\Console\Commands\GenerateCommand;
 use Foris\Easy\Support\Arr;
 use Foris\Easy\Support\Filesystem;
 
@@ -38,11 +36,9 @@ class MakeCommandTest extends TestCase
         $file = $type == 'generate-command' ? 'DummyGenerateCommand.stub' : 'DummyCommand.stub';
         $stub = Filesystem::get( __DIR__ . '/../src/Stubs/' . $file);
 
-        $parentClass = $type == 'generate-command' ? GenerateCommand::class : Command::class;
-
         return str_replace(
-            ['DummyNamespace', 'DummyClass', 'DummyParentClass', 'dummy:command'],
-            [$namespace, $class, $parentClass, 'command:name'],
+            ['DummyNamespace', 'DummyClass', 'dummy:command'],
+            [$namespace, $class, 'command:name'],
             $stub
         );
     }

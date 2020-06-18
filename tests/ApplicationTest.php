@@ -13,6 +13,11 @@ use Symfony\Component\Console\Output\BufferedOutput;
  */
 class ApplicationTest extends TestCase
 {
+    public function testGetConfig()
+    {
+        $this->assertEmpty($this->app()->getConfig());
+    }
+
     /**
      * Test get the app root path.
      *
@@ -24,7 +29,6 @@ class ApplicationTest extends TestCase
 
         $this->app()->setRootPath('root_path');
         $this->assertEquals('root_path', $this->app()->getRootPath());
-
     }
 
     /**
@@ -39,22 +43,6 @@ class ApplicationTest extends TestCase
 
         $this->app()->setRootNamespace('root_namespace');
         $this->assertEquals('root_namespace', $this->app()->getRootNamespace());
-    }
-
-    /**
-     * Test get command parent class.
-     */
-    public function testGetCommandParentClass()
-    {
-        $config = [
-            'parent_class' => [
-                Command::class => 'TestParentClass',
-            ],
-        ];
-
-        $app = new Application($config);
-        $this->assertEquals('TestParentClass', $app->getCommandParentClass(Command::class));
-        $this->assertEquals(GenerateCommand::class, $app->getCommandParentClass(GenerateCommand::class));
     }
 
     /**

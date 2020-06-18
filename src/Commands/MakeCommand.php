@@ -21,7 +21,7 @@ class MakeCommand extends GenerateCommand
      *
      * @var string
      */
-    protected $description = 'Create a new Artisan command';
+    protected $description = 'Create a new console command';
 
     /**
      * Help message
@@ -63,20 +63,6 @@ class MakeCommand extends GenerateCommand
     }
 
     /**
-     * Get command parent class.
-     *
-     * @return string
-     */
-    protected function getParentClass(): string
-    {
-        if ($this->option('type') == 'generate-command') {
-            return $this->getApplication()->getCommandParentClass(GenerateCommand::class);
-        }
-
-        return $this->getApplication()->getCommandParentClass(Command::class);
-    }
-
-    /**
      * Replace the class name for the given stub.
      *
      * @param  string  $stub
@@ -85,19 +71,7 @@ class MakeCommand extends GenerateCommand
      */
     protected function replaceClass($stub, $name)
     {
-        $stub = $this->replaceParentClass(parent::replaceClass($stub, $name));
-        return str_replace('dummy:command', $this->option('command'), $stub);
-    }
-
-    /**
-     * Replace the parent class for the given stub.
-     *
-     * @param $stub
-     * @return mixed
-     */
-    protected function replaceParentClass($stub)
-    {
-        return str_replace('DummyParentClass', $this->getParentClass(), $stub);
+        return str_replace('dummy:command', $this->option('command'), parent::replaceClass($stub, $name));
     }
 
     /**

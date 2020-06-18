@@ -2,7 +2,7 @@
 
 namespace DummyNamespace;
 
-use DummyParentClass as Command;
+use Foris\Easy\Console\Commands\Command;
 
 /**
  * Class DummyClass

@@ -161,17 +161,6 @@ class Application extends SymfonyApplication
     }
 
     /**
-     * Get command parent class.
-     *
-     * @param string $class
-     * @return string
-     */
-    public function getCommandParentClass($class = null)
-    {
-        return $this->config['parent_class'][$class] ?? $class;
-    }
-
-    /**
      * Register all of the commands in the given directory.
      *
      * @param  array|string $paths
