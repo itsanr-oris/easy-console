@@ -53,6 +53,15 @@ class Application extends SymfonyApplication
     {
         $this->config = $config;
         $this->setAutoExit(false);
+        $this->addMakeCommand();
+    }
+
+    /**
+     * Add make:command command.
+     */
+    protected function addMakeCommand()
+    {
+        $this->add(new MakeCommand());
     }
 
     /**
@@ -63,16 +72,6 @@ class Application extends SymfonyApplication
     public function getConfig()
     {
         return $this->config;
-    }
-
-    /**
-     * Gets the default commands that should always be available.
-     *
-     * @return Command[] An array of default Command instances
-     */
-    protected function getDefaultCommands()
-    {
-        return array_merge(parent::getDefaultCommands(), [new MakeCommand()]);
     }
 
     /**
