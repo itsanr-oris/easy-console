@@ -2,7 +2,6 @@
 
 namespace Foris\Easy\Console\Tests;
 
-use Foris\Easy\Console\Tests\Mock\InteractsWithIOCommand;
 use Foris\Easy\Support\Collection;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\OutputInterface;

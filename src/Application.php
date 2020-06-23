@@ -27,51 +27,44 @@ class Application extends SymfonyApplication
     protected $lastOutput;
 
     /**
-     * Application configuration.
+     * Application options.
      *
      * @var array
      */
-    protected $config = [];
+    protected $options = [];
 
     /**
      * Application constructor.
      *
-     * @param array $config
+     * @param array $options
      */
-    public function __construct($config = [])
+    public function __construct($options = [])
     {
-        $this->bootstrap($config);
-        parent::__construct($config['name'] ?? 'UNKNOWN', $config['version'] ?? 'UNKNOWN');
+        $this->bootstrap($options);
+        parent::__construct($options['name'] ?? 'UNKNOWN', $options['version'] ?? 'UNKNOWN');
     }
 
     /**
      * Bootstrap the console application.
      *
-     * @param array $config
+     * @param array $options
      */
-    protected function bootstrap($config = [])
+    protected function bootstrap($options = [])
     {
-        $this->config = $config;
+        $this->options = $options;
+
+        $this->commands();
         $this->setAutoExit(false);
-        $this->addMakeCommand();
     }
 
     /**
-     * Add make:command command.
+     * Register the commands for the application.
+     *
+     * @return void
      */
-    protected function addMakeCommand()
+    protected function commands()
     {
         $this->add(new MakeCommand());
-    }
-
-    /**
-     * Gets the application configuration.
-     *
-     * @return array
-     */
-    public function getConfig()
-    {
-        return $this->config;
     }
 
     /**
@@ -82,7 +75,7 @@ class Application extends SymfonyApplication
      */
     public function setRootNamespace($namespace)
     {
-        $this->config['root_namespace'] = $namespace;
+        $this->options['root_namespace'] = $namespace;
         return $this;
     }
 
@@ -93,17 +86,12 @@ class Application extends SymfonyApplication
      */
     public function getRootNamespace()
     {
-        if (!empty($this->config['root_namespace'])) {
-            return $this->config['root_namespace'];
+        if (!empty($this->options['root_namespace'])) {
+            return $this->options['root_namespace'];
         }
 
         $class = static::class;
-
-        if (strrpos($class, '\\Console\\') !== false) {
-            return $this->config['root_namespace'] = substr($class, 0, strrpos($class, '\\Console\\'));
-        }
-
-        return $this->config['root_namespace'] = substr($class, 0, strrpos($class, '\\'));
+        return $this->options['root_namespace'] = substr($class, 0, strrpos($class, '\\'));
     }
 
     /**
@@ -114,7 +102,7 @@ class Application extends SymfonyApplication
      */
     public function setRootPath($path)
     {
-        $this->config['root_path'] = $path;
+        $this->options['root_path'] = $path;
         return $this;
     }
 
@@ -126,14 +114,14 @@ class Application extends SymfonyApplication
      */
     public function getRootPath()
     {
-        if (!empty($this->config['root_path'])) {
-            return $this->config['root_path'];
+        if (!empty($this->options['root_path'])) {
+            return $this->options['root_path'];
         }
 
         $class = new ReflectionClass($this);
         $path = Str::finish(dirname($class->getFileName()), '/');
 
-        return $this->config['root_path'] = substr($path, 0, strrpos($path, '/src/'));
+        return $this->options['root_path'] = Str::replaceLast('/src/', '/', $path);
     }
 
     /**

@@ -3,8 +3,7 @@
 namespace Foris\Easy\Console\Tests;
 
 use Foris\Easy\Console\Application;
-use Foris\Easy\Console\Commands\Command;
-use Foris\Easy\Console\Commands\GenerateCommand;
+use Foris\Easy\Support\Str;
 use Symfony\Component\Console\Exception\CommandNotFoundException;
 use Symfony\Component\Console\Output\BufferedOutput;
 
@@ -13,36 +12,65 @@ use Symfony\Component\Console\Output\BufferedOutput;
  */
 class ApplicationTest extends TestCase
 {
-    public function testGetConfig()
+    /**
+     * Test get app root namespace
+     */
+    public function testGetRootNamespace()
     {
-        $this->assertEmpty($this->app()->getConfig());
+        $class = get_class($this->app());
+        $namespace = substr($class, 0, strrpos($class, '\\'));
+        $this->assertEquals($namespace, $this->app()->getRootNamespace());
     }
 
     /**
-     * Test get the app root path.
+     * Test set app root namespace.
+     */
+    public function testSetRootNamespace()
+    {
+        $namespace = 'root_namespace';
+        $this->assertEquals($namespace, $this->app()->setRootNamespace($namespace)->getRootNamespace());
+    }
+
+    /**
+     * Test get app root path.
      *
      * @throws \ReflectionException
      */
     public function testGetRootPath()
     {
-        $this->assertEquals($this->vfs()->url(), $this->app()->getRootPath());
-
-        $this->app()->setRootPath('root_path');
-        $this->assertEquals('root_path', $this->app()->getRootPath());
+        $this->assertEquals( Str::finish($this->vfs()->url(), '/'), $this->app()->getRootPath());
     }
 
     /**
-     * Test get the app root namespace.
+     * Test set app root path.
+     *
+     * @throws \ReflectionException
      */
-    public function testGetRootNamespace()
+    public function testSetRootPath()
     {
-        $this->assertEquals('Project', $this->app()->getRootNamespace());
+        $this->assertEquals('root_path', $this->app()->setRootPath('root_path')->getRootPath());
+    }
 
-        $class = '\Project\Application';
-        $this->assertEquals('Project', call_user_func([new $class, 'getRootNamespace']));
+    /**
+     * Test get the destination file path.
+     *
+     * @throws \ReflectionException
+     */
+    public function testGetPath()
+    {
+        $path = Str::start('test_path', Str::finish($this->vfs()->url(), '/'));
+        $this->assertEquals($path, $this->app()->getPath('test_path'));
+    }
 
-        $this->app()->setRootNamespace('root_namespace');
-        $this->assertEquals('root_namespace', $this->app()->getRootNamespace());
+    /**
+     * Test get the source code file path.
+     *
+     * @throws \ReflectionException
+     */
+    public function testGetSrcPath()
+    {
+        $path = Str::start('src', Str::finish($this->vfs()->url(), '/'));
+        $this->assertEquals($path, $this->app()->getSrcPath());
     }
 
     /**
@@ -55,8 +83,7 @@ class ApplicationTest extends TestCase
         $this->app()->load(null);
         $this->assertFalse($this->app()->has('test:hello'));
 
-
-        $this->app()->load($this->vfs()->url() . '/src/Console/Commands');
+        $this->app()->load($this->vfs()->url() . '/src/Commands');
         $this->assertTrue($this->app()->has('test:hello'));
     }
 

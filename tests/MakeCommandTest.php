@@ -24,7 +24,9 @@ class MakeCommandTest extends TestCase
             return '';
         }
 
-        $namespace = 'Project\Console\Commands';
+        $appClass = get_class($this->app());
+        $namespace = substr($appClass, 0, strrpos($appClass, '\\')) . '\Commands';
+
         if (strrpos($class, '/') !== false) {
             $segments = explode('/', $class);
             $class = end($segments);
@@ -36,11 +38,7 @@ class MakeCommandTest extends TestCase
         $file = $type == 'generate-command' ? 'DummyGenerateCommand.stub' : 'DummyCommand.stub';
         $stub = Filesystem::get( __DIR__ . '/../src/Stubs/' . $file);
 
-        return str_replace(
-            ['DummyNamespace', 'DummyClass', 'dummy:command'],
-            [$namespace, $class, 'command:name'],
-            $stub
-        );
+        return str_replace(['DummyNamespace', 'DummyClass', 'dummy:command'], [$namespace, $class, 'command:name'], $stub);
     }
 
     /**
@@ -52,7 +50,7 @@ class MakeCommandTest extends TestCase
     {
         $this->app()->call('make:command', ['name' => 'Test/Command']);
 
-        $file = $this->vfs()->url() . '/src/Console/Commands/Test/Command.php';
+        $file = $this->vfs()->url() . '/src/Commands/Test/Command.php';
         $this->assertTrue(file_exists($file));
         $this->assertEquals($this->getExpectedFileContent('Test/Command'), Filesystem::get($file));
 

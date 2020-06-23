@@ -1,6 +1,6 @@
 <?php
 
-namespace Project\Console\Commands;
+namespace Foris\Easy\Console\Demo\Commands;
 
 use Foris\Easy\Console\Commands\Command;
 

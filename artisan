@@ -1,11 +1,9 @@
 #!/usr/bin/env php
 <?php
 
-require './vendor/autoload.php';
+require __DIR__ . '/vendor/autoload.php';
+require __DIR__ . '/demo/autoload.php';
 
-define('BASE_PATH', __DIR__);
-define('ROOT_NAMESPACE', 'Foris\Easy\Console');
-
-$app = new \Foris\Easy\Console\Application();
+$app = new \Foris\Easy\Console\Demo\Application();
 
 $app->run();

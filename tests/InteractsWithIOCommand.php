@@ -1,6 +1,6 @@
 <?php
 
-namespace Foris\Easy\Console\Tests\Mock;
+namespace Foris\Easy\Console\Tests;
 
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;

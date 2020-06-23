@@ -59,7 +59,7 @@ class MakeCommand extends GenerateCommand
      */
     protected function getDefaultNamespace($rootNamespace)
     {
-        return parent::getDefaultNamespace($rootNamespace) . '\Console\Commands';
+        return parent::getDefaultNamespace($rootNamespace) . '\Commands';
     }
 
     /**

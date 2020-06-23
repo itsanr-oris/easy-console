@@ -2,7 +2,7 @@
 
 namespace Foris\Easy\Console\Tests;
 
-use Foris\Easy\Console\Application;
+use Foris\Easy\Console\Demo\Application;
 use org\bovigo\vfs\vfsStream;
 
 /**
@@ -27,19 +27,32 @@ class TestCase extends \PHPUnit\Framework\TestCase
     /**
      * Gets the application instance
      *
-     * @param bool $newInstance
      * @return Application|mixed
      */
-    protected function app($newInstance = false)
+    protected function app()
     {
-        $this->initVfs();
-
-        if ($newInstance || !$this->app instanceof Application) {
-            $class = 'Project\Console\Application';
-            return $this->app = new $class();
-        }
-
         return $this->app;
+    }
+
+    /**
+     * Gets the vfs instance
+     *
+     * @return \org\bovigo\vfs\vfsStreamDirectory
+     */
+    protected function vfs()
+    {
+        return $this->vfs;
+    }
+
+    /**
+     * Set up test environment.
+     */
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->vfs = $this->initVfs();
+        $this->app = new Application();
     }
 
     /**
@@ -47,31 +60,14 @@ class TestCase extends \PHPUnit\Framework\TestCase
      *
      * @return \org\bovigo\vfs\vfsStreamDirectory
      */
-    protected function vfs()
+    protected function initVfs()
     {
         if (empty($this->vfs)) {
-            $base = vfsStream::setup('project');
-            $this->vfs = vfsStream::copyFromFileSystem(__DIR__ . '/vfs/project', $base);
-
-            require_once $this->vfs->url() . '/src/Console/Application.php';
-            require_once $this->vfs->url() . '/src/Console/Commands/AbstractCommand.php';
-            require_once $this->vfs->url() . '/src/Console/Commands/HelloCommand.php';
-            require_once $this->vfs->url() . '/src/Console/Commands/IllegalCommand.php';
-            require_once $this->vfs->url() . '/src/Application.php';
-
-            return $this->vfs;
+            $base = vfsStream::setup('demo-console');
+            $this->vfs = vfsStream::copyFromFileSystem(__DIR__ . '/../demo', $base);
+            require_once $this->vfs->url() . '/autoload.php';
         }
 
         return $this->vfs;
-    }
-
-    /**
-     * Init vfs instance
-     *
-     * @return \org\bovigo\vfs\vfsStreamDirectory
-     */
-    protected function initVfs()
-    {
-        return empty($this->vfs) ? $this->vfs() : $this->vfs;
     }
 }
