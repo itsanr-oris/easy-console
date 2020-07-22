@@ -70,13 +70,15 @@ abstract class Command extends SymfonyCommand
      *
      * @param InputInterface  $input
      * @param OutputInterface $output
-     * @return int|void
+     * @return int
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->setInput($input);
         $this->setOutput(new SymfonyStyle($input, $output));
         $this->handle();
+
+        return 0;
     }
 
     /**

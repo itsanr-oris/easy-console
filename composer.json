@@ -11,7 +11,7 @@
     ],
     "require": {
         "php": ">=7.1",
-        "symfony/console": "^4.3",
+        "symfony/console": "^4.3|^5.0",
         "f-oris/easy-support": "^1.2"
     },
     "require-dev": {
