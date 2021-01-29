@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUndefinedClassInspection */
 
 namespace Foris\Easy\Console;
 
@@ -40,8 +40,11 @@ class Application extends SymfonyApplication
      */
     public function __construct($options = [])
     {
+        $name = isset($options['name']) ? $options['name'] : 'UNKNOWN';
+        $version = isset($options['version']) ? $options['version'] : 'UNKNOWN';
+
         $this->bootstrap($options);
-        parent::__construct($options['name'] ?? 'UNKNOWN', $options['version'] ?? 'UNKNOWN');
+        parent::__construct($name, $version);
     }
 
     /**

@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUndefinedClassInspection */
 
 namespace Foris\Easy\Console\Tests;
 
@@ -31,7 +31,7 @@ class InteractsWithIOCommand extends \Foris\Easy\Console\Commands\Command
      */
     protected $help = '';
 
-    public function __construct(?string $name = null)
+    public function __construct($name = null)
     {
         parent::__construct($name);
         $this->setVerbosity('normal');

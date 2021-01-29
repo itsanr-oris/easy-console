@@ -1,30 +1,36 @@
-<?php
+<?php /** @noinspection PhpParamsInspection */
+/** @noinspection PhpUndefinedClassInspection */
+
+/** @noinspection PhpMethodParametersCountMismatchInspection */
 
 namespace Foris\Easy\Console\Tests;
 
 use Foris\Easy\Support\Collection;
 use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Output\StreamOutput;
 use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Component\Console\Tester\TesterTrait;
 
 /**
  * Class InteractsWithIOTest
  */
 class InteractsWithIOTest extends TestCase
 {
-    use TesterTrait {
-        initOutput as traitInitOutput;
-        setInputs as traitSetInputs;
-    }
-
     /**
      * ArrayInput instance.
      *
      * @var ArrayInput
      */
     protected $input;
+
+    /**
+     * ConsoleOutput instance.
+     *
+     * @var ConsoleOutput
+     */
+    protected $output;
 
     /**
      * Command instance
@@ -34,14 +40,34 @@ class InteractsWithIOTest extends TestCase
     protected $command;
 
     /**
+     * Create input and output streams
+     *
+     * @param array $inputs
+     * @return resource
+     */
+    protected function createStream(array $inputs)
+    {
+        $stream = fopen('php://memory', 'r+', false);
+
+        foreach ($inputs as $input) {
+            fwrite($stream, $input . \PHP_EOL);
+        }
+
+        rewind($stream);
+
+        return $stream;
+    }
+
+    /**
      * Initializes the input property.
      *
+     * @param array $inputs
      * @return ArrayInput
      */
-    protected function initInput()
+    protected function initInput($inputs = [])
     {
         $this->input = new ArrayInput(['test-argument' => 'test-argument-value', '--test-option' => true]);
-        $this->input->setStream(self::createStream($this->inputs));
+        $this->input->setStream($this->createStream($inputs));
         return $this->input;
     }
 
@@ -53,8 +79,14 @@ class InteractsWithIOTest extends TestCase
      */
     protected function initOutput($options = [])
     {
-        $this->traitInitOutput($options);
-        return $this->getOutput();
+        $this->output = new StreamOutput(fopen('php://memory', 'w', false));
+        if (isset($options['decorated'])) {
+            $this->output->setDecorated($options['decorated']);
+        }
+        if (isset($options['verbosity'])) {
+            $this->output->setVerbosity($options['verbosity']);
+        }
+        return $this->output;
     }
 
     /**
@@ -80,11 +112,33 @@ class InteractsWithIOTest extends TestCase
      * @return InteractsWithIOTest
      * @throws \Exception
      */
-    protected function setInputs(array $inputs)
+    protected function setInputs($inputs = [])
     {
-        $this->traitSetInputs($inputs);
-        $this->command()->run($this->initInput(), $this->initOutput());
+        $this->command()->run($this->initInput($inputs), $this->initOutput());
         return $this;
+    }
+
+    /**
+     * Gets the display returned by the last execution of the command or application.
+     *
+     * @param bool $normalize
+     * @return string The display
+     */
+    public function getDisplay($normalize = false)
+    {
+        if (null === $this->output) {
+            throw new \RuntimeException('Output not initialized, did you execute the command before requesting the display?');
+        }
+
+        rewind($this->output->getStream());
+
+        $display = stream_get_contents($this->output->getStream());
+
+        if ($normalize) {
+            $display = str_replace(\PHP_EOL, "\n", $display);
+        }
+
+        return $display;
     }
 
     /**
@@ -142,7 +196,7 @@ class InteractsWithIOTest extends TestCase
         $expected = 'confirm question (yes/no) [yes]:';
 
         $this->command()->confirm('confirm question', 'default');
-        $this->assertStringContainsString($expected, $this->getDisplay());
+        $this->assertHasSubString($expected, $this->getDisplay());
     }
 
     /**
@@ -156,7 +210,7 @@ class InteractsWithIOTest extends TestCase
         $expected = 'ask question [default]:';
 
         $this->command()->ask('ask question', 'default');
-        $this->assertStringContainsString($expected, $this->getDisplay());
+        $this->assertHasSubString($expected, $this->getDisplay());
     }
 
     /**
@@ -168,17 +222,31 @@ class InteractsWithIOTest extends TestCase
     public function testAnticipate()
     {
         $this->setInputs(['choice-1']);
+        $question = 'anticipate question';
         $expected = 'anticipate question [choice-1]:';
 
-        $this->command()->anticipate('anticipate question', ['choice-1', 'choice-2'], 'choice-1');
-        $this->assertStringContainsString($expected, $this->getDisplay());
+        $this->command()->anticipate($question, ['choice-1', 'choice-2'], 'choice-1');
+        $this->assertHasSubString($expected, $this->getDisplay());
 
         $this->setInputs(['choice-1']);
         $callable = function () {
             return ['choice-1', 'choice-2'];
         };
+
+        if (method_exists(new Question($question), 'setAutocompleterCallback')) {
+            $this->command()->anticipate('anticipate question', $callable, 'choice-1');
+            $this->assertHasSubString($expected, $this->getDisplay());
+        } else {
+            if (class_exists( 'PHPUnit\Runner\Version' )) {
+                $this->expectException(\RuntimeException::class);
+                $this->expectExceptionMessage('Parameter [choices] only accepts array type parameters!');
+            } else {
+                $this->setExpectedException(\RuntimeException::class, 'Parameter [choices] only accepts array type parameters!');
+            }
+        }
+
         $this->command()->anticipate('anticipate question', $callable, 'choice-1');
-        $this->assertStringContainsString($expected, $this->getDisplay());
+        $this->assertHasSubString($expected, $this->getDisplay());
     }
 
     /**
@@ -209,9 +277,9 @@ class InteractsWithIOTest extends TestCase
         $this->command()->choice('choice question', $choices, 'choice-1');
 
         $display = $this->getDisplay();
-        $this->assertStringContainsString('choice question [choice-1]:', $display);
-        $this->assertStringContainsString('[0] choice-1', $display);
-        $this->assertStringContainsString('[1] choice-2', $display);
+        $this->assertHasSubString('choice question [choice-1]:', $display);
+        $this->assertHasSubString('[0] choice-1', $display);
+        $this->assertHasSubString('[1] choice-2', $display);
     }
 
     /**
@@ -226,9 +294,9 @@ class InteractsWithIOTest extends TestCase
         );
 
         $display = $this->getDisplay();
-        $this->assertStringContainsString('+---------+---------+', $display);
-        $this->assertStringContainsString('| title-1 | title-2 |', $display);
-        $this->assertStringContainsString('| row-1   | row-2   |', $display);
+        $this->assertHasSubString('+---------+---------+', $display);
+        $this->assertHasSubString('| title-1 | title-2 |', $display);
+        $this->assertHasSubString('| row-1   | row-2   |', $display);
     }
 
     /**
@@ -257,7 +325,7 @@ class InteractsWithIOTest extends TestCase
                 ->andReturnUsing(function () use ($message, $style, $verbosity) {
                     $this->initOutput()->writeln("success write [$style] message: [$message]", $verbosity);
                 });
-            $output->shouldReceive('newLine')->andReturnTrue();
+            $output->shouldReceive('newLine')->andReturn(true);
         }
 
         $output->shouldReceive('getFormatter')->andReturn($this->command()->getOutput()->getFormatter());
@@ -273,7 +341,7 @@ class InteractsWithIOTest extends TestCase
     {
         $this->initWriteLineOutput('This is an info message.', 'info');
         $this->command()->info('This is an info message.');
-        $this->assertStringContainsString('success write [info] message: [This is an info message.]', $this->getDisplay());
+        $this->assertHasSubString('success write [info] message: [This is an info message.]', $this->getDisplay());
     }
 
     /**
@@ -285,7 +353,7 @@ class InteractsWithIOTest extends TestCase
     {
         $this->initWriteLineOutput('This is a comment message.', 'comment');
         $this->command()->comment('This is a comment message.');
-        $this->assertStringContainsString('success write [comment] message: [This is a comment message.]', $this->getDisplay());
+        $this->assertHasSubString('success write [comment] message: [This is a comment message.]', $this->getDisplay());
     }
 
     /**
@@ -297,7 +365,7 @@ class InteractsWithIOTest extends TestCase
     {
         $this->initWriteLineOutput('This is a question message.', 'question');
         $this->command()->question('This is a question message.');
-        $this->assertStringContainsString('success write [question] message: [This is a question message.]', $this->getDisplay());
+        $this->assertHasSubString('success write [question] message: [This is a question message.]', $this->getDisplay());
     }
 
     /**
@@ -309,7 +377,7 @@ class InteractsWithIOTest extends TestCase
     {
         $this->initWriteLineOutput('This is a error message.', 'error');
         $this->command()->error('This is a error message.');
-        $this->assertStringContainsString('success write [error] message: [This is a error message.]', $this->getDisplay());
+        $this->assertHasSubString('success write [error] message: [This is a error message.]', $this->getDisplay());
     }
 
     /**
@@ -321,7 +389,7 @@ class InteractsWithIOTest extends TestCase
     {
         $this->initWriteLineOutput('This is a warning message.', 'warning');
         $this->command()->warn('This is a warning message.');
-        $this->assertStringContainsString('success write [warning] message: [This is a warning message.]', $this->getDisplay());
+        $this->assertHasSubString('success write [warning] message: [This is a warning message.]', $this->getDisplay());
     }
 
     /**
@@ -333,6 +401,6 @@ class InteractsWithIOTest extends TestCase
     {
         $this->initWriteLineOutput('This is a alert message.', 'alert');
         $this->command()->alert('This is a alert message.');
-        $this->assertStringContainsString('success write [alert] message: [This is a alert message.]', $this->getDisplay());
+        $this->assertHasSubString('success write [alert] message: [This is a alert message.]', $this->getDisplay());
     }
 }

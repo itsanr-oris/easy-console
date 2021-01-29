@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUndefinedClassInspection */
 
 namespace Foris\Easy\Console\Commands;
 
@@ -42,7 +42,7 @@ class MakeCommand extends GenerateCommand
      *
      * @return string
      */
-    protected function getStub(): string
+    protected function getStub()
     {
         if ($this->option('type') == 'generate-command') {
             return __DIR__ . '/../Stubs/DummyGenerateCommand.stub';
