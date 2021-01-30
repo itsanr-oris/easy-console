@@ -1,4 +1,6 @@
-<?php
+<?php /** @noinspection PhpMethodParametersCountMismatchInspection */
+
+/** @noinspection PhpUndefinedClassInspection */
 
 namespace Foris\Easy\Console\Tests;
 
@@ -95,9 +97,9 @@ class ApplicationTest extends TestCase
     protected function mockApplication()
     {
         $app = \Mockery::mock(Application::class)->makePartial();
-        $app->shouldReceive('has')->with('test:command')->andReturnTrue();
+        $app->shouldReceive('has')->with('test:command')->andReturn(true);
         $app->shouldReceive('run')->andReturn('command run success');
-        $app->shouldReceive('has')->with('test:not-exist-command')->andReturnFalse();
+        $app->shouldReceive('has')->with('test:not-exist-command')->andReturn(false);
 
         return $app;
     }
@@ -118,8 +120,13 @@ class ApplicationTest extends TestCase
 
         $this->assertEquals('get output content success', $app->output());
 
-        $this->expectException(CommandNotFoundException::class);
-        $this->expectExceptionMessage('The command "test:not-exist-command" does not exist.');
+        if (class_exists( 'PHPUnit\Runner\Version' )) {
+            $this->expectException(CommandNotFoundException::class);
+            $this->expectExceptionMessage('The command "test:not-exist-command" does not exist.');
+        } else {
+            $this->setExpectedException(CommandNotFoundException::class, 'The command "test:not-exist-command" does not exist.');
+        }
+
         $app->call('test:not-exist-command');
     }
 }

@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUndefinedClassInspection */
 
 namespace Foris\Easy\Console\Commands;
 
@@ -48,7 +48,7 @@ abstract class GenerateCommand extends Command
      *
      * @return string
      */
-    abstract protected function getStub() : string;
+    abstract protected function getStub();
 
     /**
      * Get the desired class name from the input.

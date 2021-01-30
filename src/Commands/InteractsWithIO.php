@@ -1,4 +1,4 @@
-<?php
+<?php /** @noinspection PhpUndefinedClassInspection */
 
 namespace Foris\Easy\Console\Commands;
 
@@ -173,9 +173,15 @@ trait InteractsWithIO
     {
         $question = new Question($question, $default);
 
-        is_callable($choices)
-            ? $question->setAutocompleterCallback($choices)
-            : $question->setAutocompleterValues($choices);
+        if (is_callable($choices)) {
+            if (method_exists($question, 'setAutocompleterCallback')) {
+                $question->setAutocompleterCallback($choices);
+            } else {
+                throw new \RuntimeException('Parameter [choices] only accepts array type parameters!');
+            }
+        } else {
+            $question->setAutocompleterValues($choices);
+        }
 
         return $this->output->askQuestion($question);
     }

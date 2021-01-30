@@ -7,6 +7,12 @@ use org\bovigo\vfs\vfsStream;
 
 /**
  * Class TestCase
+ *
+ * @method expectException($class)
+ * @method expectExceptionMessage($message)
+ * @method setExpectedException($class, $message = "", $code = null)
+ * @method assertStringContainsString(string $needle, string $haystack, string $message = '')
+ * @method assertStringContainsStringIgnoringCase(string $needle, string $haystack, string $message = '')
  */
 class TestCase extends \PHPUnit\Framework\TestCase
 {
@@ -47,7 +53,7 @@ class TestCase extends \PHPUnit\Framework\TestCase
     /**
      * Set up test environment.
      */
-    protected function setUp(): void
+    protected function setUp()
     {
         parent::setUp();
 
@@ -69,5 +75,39 @@ class TestCase extends \PHPUnit\Framework\TestCase
         }
 
         return $this->vfs;
+    }
+
+    /**
+     * Assert a given string is a sub-string of another string.
+     *
+     * @param string $needle
+     * @param string $haystack
+     * @param string $message
+     */
+    protected function assertHasSubString($needle, $haystack, $message = '')
+    {
+        if (method_exists($this, 'assertStringContainsString')) {
+            $this->assertStringContainsString($needle, $haystack, $message);
+            return ;
+        }
+
+        $this->assertTrue(mb_strpos($haystack, $needle) !== false);
+    }
+
+    /**
+     * Assert a given string is a sub-string of another string.
+     *
+     * @param string $needle
+     * @param string $haystack
+     * @param string $message
+     */
+    protected function assertHasSubStringIgnoringCase($needle, $haystack, $message = '')
+    {
+        if (method_exists($this, 'assertStringContainsStringIgnoringCase')) {
+            $this->assertStringContainsStringIgnoringCase($needle, $haystack, $message);
+            return ;
+        }
+
+        $this->assertTrue(mb_stripos($haystack, $needle) !== false);
     }
 }
