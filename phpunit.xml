@@ -18,6 +18,7 @@
             <directory suffix=".php">src/</directory>
             <exclude>
                 <directory>src/Stubs</directory>
+                <directory>src/Test</directory>
             </exclude>
         </whitelist>
     </filter>

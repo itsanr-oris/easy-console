@@ -3,6 +3,7 @@
 namespace Foris\Easy\Console\Tests;
 
 use Foris\Easy\Console\Demo\Application;
+use Foris\Easy\Console\Test\ConsoleTestSuite;
 use org\bovigo\vfs\vfsStream;
 
 /**
@@ -16,6 +17,8 @@ use org\bovigo\vfs\vfsStream;
  */
 class TestCase extends \PHPUnit\Framework\TestCase
 {
+    use ConsoleTestSuite;
+
     /**
      * Application instance.
      *

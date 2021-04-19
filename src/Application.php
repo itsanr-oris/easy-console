@@ -20,6 +20,20 @@ use Symfony\Component\Console\Output\OutputInterface;
 class Application extends SymfonyApplication
 {
     /**
+     * User interaction inputs;
+     *
+     * @var array
+     */
+    protected $inputs = [];
+
+    /**
+     * Determined whether to enable user interaction.
+     *
+     * @var bool
+     */
+    protected $interactive = false;
+
+    /**
      * The output from the previous command.
      *
      * @var OutputInterface
@@ -165,10 +179,6 @@ class Application extends SymfonyApplication
             return is_dir($path);
         });
 
-        if (empty($paths)) {
-            return;
-        }
-
         $srcPath = $this->getSrcPath();
         $rootNamespace = $this->getRootNamespace();
 
@@ -210,9 +220,67 @@ class Application extends SymfonyApplication
         array_unshift($parameters, $command);
         $input = new ArrayInput($parameters);
 
+        if ($this->isInteractive()) {
+            $input->setStream($this->getInputStream());
+        }
+
         return $this->run(
             $input, $this->lastOutput = $outputBuffer ?: new BufferedOutput
         );
+    }
+
+
+    /**
+     * Sets the user interact inputs.
+     *
+     * @param array $inputs
+     * @return $this
+     */
+    public function setInputs($inputs = [])
+    {
+        $this->inputs = $inputs;
+        return $this;
+    }
+
+    /**
+     * Enable user interact.
+     *
+     * @param bool $interactive
+     * @return $this
+     */
+    public function setInteractive($interactive = true)
+    {
+        $this->interactive = $interactive;
+        putenv('SHELL_INTERACTIVE=true');
+        return $this;
+    }
+
+    /**
+     * Is this input means interactive?
+     *
+     * @return bool
+     */
+    public function isInteractive()
+    {
+        return $this->interactive;
+    }
+
+    /**
+     * Gets the user interact input stream.
+     *
+     * @return bool|resource
+     */
+    public function getInputStream()
+    {
+        $stream = fopen('php://memory', 'r+', false);
+
+        foreach ($this->inputs as $input) {
+            fwrite($stream, $input . \PHP_EOL);
+        }
+
+        rewind($stream);
+
+        return $stream;
     }
 
     /**

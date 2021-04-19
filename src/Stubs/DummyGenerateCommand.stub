@@ -35,7 +35,7 @@ class DummyClass extends GenerateCommand
      *
      * @return string
      */
-    protected function getStub(): string
+    protected function getStub()
     {
         // TODO: Implement getStub() method.
     }
@@ -43,7 +43,7 @@ class DummyClass extends GenerateCommand
     /**
      * Execute the console command.
      *
-     * @return bool|void
+     * @return bool
      * @throws \Foris\Easy\Support\Exceptions\FileNotFountException
      * @throws \ReflectionException
      */

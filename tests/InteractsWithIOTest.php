@@ -5,6 +5,8 @@
 
 namespace Foris\Easy\Console\Tests;
 
+use Foris\Easy\Console\Tests\Mock\FixCallableQuestion;
+use Foris\Easy\Console\Tests\Mock\InteractsWithIOCommand;
 use Foris\Easy\Support\Collection;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\ConsoleOutput;
@@ -233,20 +235,17 @@ class InteractsWithIOTest extends TestCase
             return ['choice-1', 'choice-2'];
         };
 
-        if (method_exists(new Question($question), 'setAutocompleterCallback')) {
-            $this->command()->anticipate('anticipate question', $callable, 'choice-1');
-            $this->assertHasSubString($expected, $this->getDisplay());
-        } else {
-            if (class_exists( 'PHPUnit\Runner\Version' )) {
-                $this->expectException(\RuntimeException::class);
-                $this->expectExceptionMessage('Parameter [choices] only accepts array type parameters!');
-            } else {
-                $this->setExpectedException(\RuntimeException::class, 'Parameter [choices] only accepts array type parameters!');
-            }
-        }
-
-        $this->command()->anticipate('anticipate question', $callable, 'choice-1');
+        $question = new FixCallableQuestion('anticipate question', 'choice-1');
+        $this->command()->anticipate($question, $callable);
         $this->assertHasSubString($expected, $this->getDisplay());
+
+        if (class_exists( 'PHPUnit\Runner\Version' )) {
+            $this->expectException(\RuntimeException::class);
+            $this->expectExceptionMessage('Parameter [choices] only accepts array type parameters!');
+        } else {
+            $this->setExpectedException(\RuntimeException::class, 'Parameter [choices] only accepts array type parameters!');
+        }
+        $this->command()->anticipate('anticipate question', $callable, 'choice-1');
     }
 
     /**

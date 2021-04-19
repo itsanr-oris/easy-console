@@ -77,15 +77,9 @@ class ApplicationTest extends TestCase
 
     /**
      * Test load command from paths.
-     *
-     * @throws \ReflectionException
      */
     public function testLoadCommandFromPaths()
     {
-        $this->app()->load(null);
-        $this->assertFalse($this->app()->has('test:hello'));
-
-        $this->app()->load($this->vfs()->url() . '/src/Commands');
         $this->assertTrue($this->app()->has('test:hello'));
     }
 
@@ -128,5 +122,23 @@ class ApplicationTest extends TestCase
         }
 
         $app->call('test:not-exist-command');
+    }
+
+    /**
+     * Test user interacts.
+     *
+     * @throws \Exception
+     */
+    public function testUserInteracts()
+    {
+        $this->setInteractive(true);
+
+        $this->setInputs(['']);
+        $this->call('test:interact');
+        $this->assertHasSubString('The test question answer is : default', $this->getDisplay());
+
+        $this->setInputs(['test answer']);
+        $this->call('test:interact');
+        $this->assertHasSubString('The test question answer is : test answer', $this->getDisplay());
     }
 }
