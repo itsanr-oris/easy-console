@@ -2,18 +2,12 @@
 
 namespace Foris\Easy\Console\Tests;
 
-use Foris\Easy\Console\Demo\Application;
+use Demo\Console\Application;
 use Foris\Easy\Console\Test\ConsoleTestSuite;
 use org\bovigo\vfs\vfsStream;
 
 /**
  * Class TestCase
- *
- * @method expectException($class)
- * @method expectExceptionMessage($message)
- * @method setExpectedException($class, $message = "", $code = null)
- * @method assertStringContainsString(string $needle, string $haystack, string $message = '')
- * @method assertStringContainsStringIgnoringCase(string $needle, string $haystack, string $message = '')
  */
 class TestCase extends \PHPUnit\Framework\TestCase
 {
@@ -61,7 +55,7 @@ class TestCase extends \PHPUnit\Framework\TestCase
         parent::setUp();
 
         $this->vfs = $this->initVfs();
-        $this->app = new Application();
+        $this->app = new Application($this->vfs()->url());
     }
 
     /**
@@ -74,7 +68,7 @@ class TestCase extends \PHPUnit\Framework\TestCase
         if (empty($this->vfs)) {
             $base = vfsStream::setup('demo-console');
             $this->vfs = vfsStream::copyFromFileSystem(__DIR__ . '/../demo', $base);
-            require_once $this->vfs->url() . '/autoload.php';
+            require_once $this->vfs->url() . '/vendor/autoload.php';
         }
 
         return $this->vfs;

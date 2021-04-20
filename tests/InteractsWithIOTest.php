@@ -239,12 +239,7 @@ class InteractsWithIOTest extends TestCase
         $this->command()->anticipate($question, $callable);
         $this->assertHasSubString($expected, $this->getDisplay());
 
-        if (class_exists( 'PHPUnit\Runner\Version' )) {
-            $this->expectException(\RuntimeException::class);
-            $this->expectExceptionMessage('Parameter [choices] only accepts array type parameters!');
-        } else {
-            $this->setExpectedException(\RuntimeException::class, 'Parameter [choices] only accepts array type parameters!');
-        }
+        $this->setExpectedException(\RuntimeException::class, 'Parameter [choices] only accepts array type parameters!');
         $this->command()->anticipate('anticipate question', $callable, 'choice-1');
     }
 

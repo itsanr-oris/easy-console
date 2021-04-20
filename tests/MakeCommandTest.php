@@ -46,12 +46,11 @@ class MakeCommandTest extends TestCase
      *
      * @throws \Exception
      */
-    public function testMakeCommand()
+    public function testMakeCommandInConsolePath()
     {
         $this->app()->call('make:command', ['name' => 'Test/Command']);
-
-        $file = $this->vfs()->url() . '/src/Commands/Test/Command.php';
-        $this->assertTrue(file_exists($file));
+        $file = $this->vfs()->url() . '/app/Console/Commands/Test/Command.php';
+        $this->assertFileExists($file);
         $this->assertEquals($this->getExpectedFileContent('Test/Command'), Filesystem::get($file));
 
         $this->app()->call('make:command', ['name' => 'Test/Command', '--type' => 'generate-command']);
@@ -59,5 +58,18 @@ class MakeCommandTest extends TestCase
 
         $this->app()->call('make:command', ['name' => 'Test/Command', '--type' => 'generate-command', '--force' => true]);
         $this->assertEquals($this->getExpectedFileContent('Test/Command', 'generate-command'), Filesystem::get($file));
+    }
+
+    /**
+     * Test make component.
+     *
+     * @throws \Exception
+     */
+    public function testMakeComponentInSrcPath()
+    {
+        $this->app()->call('make:component', ['name' => 'Test/Component']);
+        $file = $this->vfs()->url() . '/app/Test/Component.php';
+        $this->assertFileExists($file);
+        $this->assertTrue(class_exists('Demo\Test\Component'));
     }
 }

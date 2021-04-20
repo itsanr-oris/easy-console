@@ -52,6 +52,27 @@ class MakeCommand extends GenerateCommand
     }
 
     /**
+     * Gets source code file path.
+     *
+     * @return string
+     * @throws \ReflectionException
+     */
+    protected function getSrcPath()
+    {
+        return $this->getApplication()->getConsolePath();
+    }
+
+    /**
+     * Gets the root namespace.
+     *
+     * @return bool|mixed|string
+     */
+    protected function getRootNamespace()
+    {
+        return $this->getApplication()->getConsoleNamespace();
+    }
+
+    /**
      * Get the default namespace for the class.
      *
      * @param  string  $rootNamespace
@@ -59,7 +80,7 @@ class MakeCommand extends GenerateCommand
      */
     protected function getDefaultNamespace($rootNamespace)
     {
-        return parent::getDefaultNamespace($rootNamespace) . '\Commands';
+        return $rootNamespace . '\Commands';
     }
 
     /**

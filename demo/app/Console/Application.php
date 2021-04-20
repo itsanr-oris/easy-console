@@ -1,6 +1,6 @@
 <?php
 
-namespace Foris\Easy\Console\Demo;
+namespace Demo\Console;
 
 /**
  * Class Application
@@ -9,8 +9,6 @@ class Application extends \Foris\Easy\Console\Application
 {
     /**
      * Register the commands for the application.
-     *
-     * @throws \ReflectionException
      */
     protected function commands()
     {

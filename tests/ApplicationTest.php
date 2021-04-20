@@ -15,22 +15,24 @@ use Symfony\Component\Console\Output\BufferedOutput;
 class ApplicationTest extends TestCase
 {
     /**
-     * Test get app root namespace
+     * Gets the `composer.json` file content.
+     *
+     * @return array
      */
-    public function testGetRootNamespace()
+    protected function getComposer()
     {
-        $class = get_class($this->app());
-        $namespace = substr($class, 0, strrpos($class, '\\'));
-        $this->assertEquals($namespace, $this->app()->getRootNamespace());
+        return json_decode(file_get_contents($this->vfs()->url() . '/composer.json'), true);
     }
 
     /**
-     * Test set app root namespace.
+     * Test get app root namespace
+     *
+     * @throws \ReflectionException
      */
-    public function testSetRootNamespace()
+    public function testGetRootNamespace()
     {
-        $namespace = 'root_namespace';
-        $this->assertEquals($namespace, $this->app()->setRootNamespace($namespace)->getRootNamespace());
+        $composer = $this->getComposer();
+        $this->assertArrayHasKey($this->app()->getRootNamespace(), $composer['autoload']['psr-4']);
     }
 
     /**
@@ -40,7 +42,8 @@ class ApplicationTest extends TestCase
      */
     public function testGetRootPath()
     {
-        $this->assertEquals( Str::finish($this->vfs()->url(), '/'), $this->app()->getRootPath());
+        $this->assertEquals(Str::finish($this->vfs()->url(), '/'), $this->app()->getRootPath());
+        $this->assertFileEquals(__DIR__ . '/../', (new Application())->getRootPath());
     }
 
     /**
@@ -50,7 +53,7 @@ class ApplicationTest extends TestCase
      */
     public function testSetRootPath()
     {
-        $this->assertEquals('root_path', $this->app()->setRootPath('root_path')->getRootPath());
+        $this->assertEquals('/root_path/', $this->app()->setRootPath('/root_path/')->getRootPath());
     }
 
     /**
@@ -60,7 +63,7 @@ class ApplicationTest extends TestCase
      */
     public function testGetPath()
     {
-        $path = Str::start('test_path', Str::finish($this->vfs()->url(), '/'));
+        $path = $this->vfs()->url() . '/test_path';
         $this->assertEquals($path, $this->app()->getPath('test_path'));
     }
 
@@ -71,7 +74,7 @@ class ApplicationTest extends TestCase
      */
     public function testGetSrcPath()
     {
-        $path = Str::start('src', Str::finish($this->vfs()->url(), '/'));
+        $path = $this->vfs()->url() . '/app/';
         $this->assertEquals($path, $this->app()->getSrcPath());
     }
 
@@ -111,16 +114,9 @@ class ApplicationTest extends TestCase
         $app = $this->mockApplication();
         $result = $app->call('test:command', ['name' => 'test', '--force' => true], $output);
         $this->assertEquals('command run success', $result);
-
         $this->assertEquals('get output content success', $app->output());
 
-        if (class_exists( 'PHPUnit\Runner\Version' )) {
-            $this->expectException(CommandNotFoundException::class);
-            $this->expectExceptionMessage('The command "test:not-exist-command" does not exist.');
-        } else {
-            $this->setExpectedException(CommandNotFoundException::class, 'The command "test:not-exist-command" does not exist.');
-        }
-
+        $this->setExpectedException(CommandNotFoundException::class, 'The command "test:not-exist-command" does not exist.');
         $app->call('test:not-exist-command');
     }
 
@@ -140,5 +136,56 @@ class ApplicationTest extends TestCase
         $this->setInputs(['test answer']);
         $this->call('test:interact');
         $this->assertHasSubString('The test question answer is : test answer', $this->getDisplay());
+    }
+
+    /**
+     * Test composer.json file not found exception.
+     *
+     * @throws \ReflectionException
+     */
+    public function testComposerFileNotFoundException()
+    {
+        $file = $this->vfs()->url() . '/composer/composer.json';
+
+        $this->setExpectedException(
+            \RuntimeException::class,
+            sprintf('The composer.json file could not be found in [%s]!', $file)
+        );
+
+        (new Application($this->vfs()->url() . '/composer/'))->getRootNamespace();
+    }
+
+    /**
+     * Test parse composer.json failed exception.
+     *
+     * @throws \ReflectionException
+     */
+    public function testFailedToParseComposerFileException()
+    {
+        $file = $this->vfs()->url() . '/composer/non-json/composer.json';
+
+        $this->setExpectedException(
+            \RuntimeException::class,
+            sprintf('Failed to parse the content of [%s], please check whether the file content is correct!', $file)
+        );
+
+        (new Application($this->vfs()->url() . '/composer/non-json/'))->getRootNamespace();
+    }
+
+    /**
+     * Test unable to get root namespace from composer.json exception.
+     *
+     * @throws \ReflectionException
+     */
+    public function testUnableGetRootNamespaceFromComposerFileException()
+    {
+        $file = $this->vfs()->url() . '/composer/non-namespace/composer.json';
+
+        $this->setExpectedException(
+            \RuntimeException::class,
+            sprintf('Unable to get root namespace from [%s], please check whether the file content is correct!', $file)
+        );
+
+        (new Application($this->vfs()->url() . '/composer/non-namespace/'))->getRootNamespace();
     }
 }
