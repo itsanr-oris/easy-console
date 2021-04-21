@@ -1,4 +1,5 @@
-<?php /** @noinspection PhpUndefinedClassInspection */
+<?php /** @noinspection PhpIncludeInspection */
+/** @noinspection PhpUndefinedClassInspection */
 
 namespace Foris\Easy\Console;
 
@@ -7,6 +8,7 @@ use Foris\Easy\Support\Arr;
 use Foris\Easy\Support\Filesystem;
 use Foris\Easy\Support\Str;
 use ReflectionClass;
+use RuntimeException;
 use Symfony\Component\Console\Application as SymfonyApplication;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Exception\CommandNotFoundException;
@@ -19,6 +21,20 @@ use Symfony\Component\Console\Output\OutputInterface;
  */
 class Application extends SymfonyApplication
 {
+    /**
+     * User interactive inputs.
+     *
+     * @var array
+     */
+    protected $inputs = [];
+
+    /**
+     * Determined whether to enable user interaction.
+     *
+     * @var bool
+     */
+    protected $interactive = false;
+
     /**
      * The output from the previous command.
      *
@@ -36,26 +52,24 @@ class Application extends SymfonyApplication
     /**
      * Application constructor.
      *
-     * @param array $options
+     * @param null   $rootPath
+     * @param string $name
+     * @param string $version
      */
-    public function __construct($options = [])
+    public function __construct($rootPath = null, $name = 'UNKNOWN', $version = 'UNKNOWN')
     {
-        $name = isset($options['name']) ? $options['name'] : 'UNKNOWN';
-        $version = isset($options['version']) ? $options['version'] : 'UNKNOWN';
-
-        $this->bootstrap($options);
         parent::__construct($name, $version);
+        $this->bootstrap($rootPath);
     }
 
     /**
      * Bootstrap the console application.
      *
-     * @param array $options
+     * @param $rootPath
      */
-    protected function bootstrap($options = [])
+    protected function bootstrap($rootPath)
     {
-        $this->options = $options;
-
+        $this->setRootPath($rootPath);
         $this->commands();
         $this->setAutoExit(false);
     }
@@ -71,46 +85,19 @@ class Application extends SymfonyApplication
     }
 
     /**
-     * Set the root namespace.
+     * Sets the app root path.
      *
-     * @param $namespace
+     * @param $rootPath
      * @return $this
      */
-    public function setRootNamespace($namespace)
+    protected function setRootPath($rootPath)
     {
-        $this->options['root_namespace'] = $namespace;
+        $this->options['root_path'] = empty($rootPath) ? '' : Str::finish($rootPath, '/');
         return $this;
     }
 
     /**
-     * Get the root namespace.
-     *
-     * @return string
-     */
-    public function getRootNamespace()
-    {
-        if (!empty($this->options['root_namespace'])) {
-            return $this->options['root_namespace'];
-        }
-
-        $class = static::class;
-        return $this->options['root_namespace'] = substr($class, 0, strrpos($class, '\\'));
-    }
-
-    /**
-     * Set the app root path.
-     *
-     * @param $path
-     * @return $this
-     */
-    public function setRootPath($path)
-    {
-        $this->options['root_path'] = $path;
-        return $this;
-    }
-
-    /**
-     * Get the app root path.
+     * Gets the app root path.
      *
      * @return string
      * @throws \ReflectionException
@@ -124,7 +111,7 @@ class Application extends SymfonyApplication
         $class = new ReflectionClass($this);
         $path = Str::finish(dirname($class->getFileName()), '/');
 
-        return $this->options['root_path'] = Str::replaceLast('/src/', '/', $path);
+        return $this->options['root_path'] = Str::finish(Str::replaceLast('/src/', '/', $path), '/');
     }
 
     /**
@@ -140,22 +127,122 @@ class Application extends SymfonyApplication
     }
 
     /**
-     * Gets source code file path.
+     * Gets the console app path
      *
      * @return string
      * @throws \ReflectionException
      */
-    public function getSrcPath()
+    public function getConsolePath()
     {
-        return $this->getPath('src');
+        if (!empty($this->options['console_path'])) {
+            return $this->options['console_path'];
+        }
+
+        $class = new ReflectionClass($this);
+        return $this->options['console_path'] = Str::finish(dirname($class->getFileName()), '/');
     }
 
     /**
-     * Register all of the commands in the given directory.
+     * Gets the console app namespace.
+     *
+     * @return bool|mixed|string
+     */
+    public function getConsoleNamespace()
+    {
+        if (!empty($this->options['console_namespace'])) {
+            return $this->options['console_namespace'];
+        }
+
+        $class = static::class;
+        return $this->options['console_namespace'] = substr($class, 0, strrpos($class, '\\'));
+    }
+
+    /**
+     * Gets the `composer.json` file content.
+     *
+     * @return array
+     * @throws \ReflectionException
+     */
+    protected function getComposer()
+    {
+        $path = $this->getPath('composer.json');
+
+        if (!file_exists($path)) {
+            throw new RuntimeException(sprintf('The composer.json file could not be found in [%s]!', $path));
+        }
+
+        $composer = json_decode(file_get_contents($path), true);
+
+        if (empty($composer)) {
+            throw new RuntimeException(
+                sprintf('Failed to parse the content of [%s], please check whether the file content is correct!', $path)
+            );
+        }
+
+        return $composer;
+    }
+
+    /**
+     * Gets the root namespace.
+     *
+     * @return int|string
+     * @throws \ReflectionException
+     */
+    public function getRootNamespace()
+    {
+        if (!empty($this->options['root_namespace'])) {
+            return $this->options['root_namespace'];
+        }
+
+        $composer = $this->getComposer();
+
+        $len = -1;
+        $rootNamespace = '';
+
+        foreach ($composer['autoload']['psr-4'] as $namespace => $path) {
+            if (strpos(static::class, $namespace) !== 0) {
+                continue;
+            }
+
+            if ($len == -1 || $len > strlen($namespace)) {
+                $len = strlen($namespace);
+                $rootNamespace = $namespace;
+            }
+        }
+
+        if (empty($rootNamespace)) {
+            throw new RuntimeException(
+                sprintf(
+                    'Unable to get root namespace from [%s], please check whether the file content is correct!',
+                    $this->getPath('composer.json')
+                )
+            );
+        }
+
+        return $this->options['root_namespace'] = $rootNamespace;
+    }
+
+    /**
+     * Gets source code file path.
+     *
+     * @return mixed
+     * @throws \ReflectionException
+     */
+    public function getSrcPath()
+    {
+        if (!empty($this->options['src_path'])) {
+            return $this->options['src_path'];
+        }
+
+        $composer = $this->getComposer();
+        return $this->options['src_path'] = Str::finish($this->getPath($composer['autoload']['psr-4'][$this->getRootNamespace()]), '/');
+    }
+
+    /**
+     * Register commands in all given directories.
      *
      * @param  array|string $paths
      * @return void
-     * @throws \ReflectionException
      */
     public function load($paths)
     {
@@ -165,29 +252,30 @@ class Application extends SymfonyApplication
             return is_dir($path);
         });
 
-        if (empty($paths)) {
-            return;
-        }
+        array_walk($paths, function ($path) { $this->discover($path);});
+    }
 
+    /**
+     * Discover and register commands in the given directory.
+     *
+     * @param $path
+     * @throws \ReflectionException
+     */
+    protected function discover($path)
+    {
         $srcPath = $this->getSrcPath();
         $rootNamespace = $this->getRootNamespace();
 
-        foreach ($paths as $path) {
-            foreach (Filesystem::scanFiles($path) as $item) {
-                $class = ucfirst(str_replace([$srcPath, '.php', '/'], [$rootNamespace, '', '\\'], $item));
+        foreach (Filesystem::scanFiles($path) as $item) {
+            $class = ucfirst(str_replace([$srcPath, '.php', '/'], [$rootNamespace, '', '\\'], $item));
 
-                if (!class_exists($class) || !is_subclass_of($class, Command::class)) {
-                    continue;
-                }
-
-                $reflect = new ReflectionClass($class);
-
-                if (!$reflect->isInstantiable()) {
-                    continue;
-                }
-
-                $this->add(new $class());
+            if (!class_exists($class)
+                || !is_subclass_of($class, Command::class)
+                || !(new ReflectionClass($class))->isInstantiable()) {
+                continue;
             }
+
+            $this->add(new $class());
         }
     }
 
@@ -210,9 +298,67 @@ class Application extends SymfonyApplication
         array_unshift($parameters, $command);
         $input = new ArrayInput($parameters);
 
+        if ($this->isInteractive()) {
+            $input->setStream($this->getInputStream());
+        }
+
         return $this->run(
             $input, $this->lastOutput = $outputBuffer ?: new BufferedOutput
         );
+    }
+
+
+    /**
+     * Sets the user interactive inputs.
+     *
+     * @param array $inputs
+     * @return $this
+     */
+    public function setInputs($inputs = [])
+    {
+        $this->inputs = $inputs;
+        return $this;
+    }
+
+    /**
+     * Enable user interactive.
+     *
+     * @param bool $interactive
+     * @return $this
+     */
+    public function setInteractive($interactive = true)
+    {
+        $this->interactive = $interactive;
+        putenv('SHELL_INTERACTIVE=true');
+        return $this;
+    }
+
+    /**
+     * Is this input means interactive?
+     *
+     * @return bool
+     */
+    public function isInteractive()
+    {
+        return $this->interactive;
+    }
+
+    /**
+     * Gets the user interactive input stream.
+     *
+     * @return bool|resource
+     */
+    public function getInputStream()
+    {
+        $stream = fopen('php://memory', 'r+', false);
+
+        foreach ($this->inputs as $input) {
+            fwrite($stream, $input . \PHP_EOL);
+        }
+
+        rewind($stream);
+
+        return $stream;
     }
 
     /**

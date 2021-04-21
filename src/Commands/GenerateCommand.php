@@ -74,8 +74,9 @@ abstract class GenerateCommand extends Command
     /**
      * Parse the class name and format according to the root namespace.
      *
-     * @param  string  $name
+     * @param  string $name
      * @return string
+     * @throws \ReflectionException
      */
     protected function qualifyClass($name)
     {
@@ -100,6 +101,7 @@ abstract class GenerateCommand extends Command
      * @param $name
      * @return mixed
      * @throws \Foris\Easy\Support\Exceptions\FileNotFountException
+     * @throws \ReflectionException
      */
     public function buildClass($name)
     {
@@ -114,6 +116,7 @@ abstract class GenerateCommand extends Command
      * @param $stub
      * @param $name
      * @return $this
+     * @throws \ReflectionException
      */
     protected function replaceNamespace(&$stub, $name)
     {
@@ -191,6 +194,7 @@ abstract class GenerateCommand extends Command
      * Gets the root namespace.
      *
      * @return string
+     * @throws \ReflectionException
      */
     protected function getRootNamespace()
     {
@@ -217,8 +221,8 @@ abstract class GenerateCommand extends Command
      */
     protected function getPath($name)
     {
-        $name = Str::replaceFirst($this->getRootNamespace(), '', $name);
-        return $this->getSrcPath() . '/' . str_replace('\\', '/', $name) . '.php';
+        $name = Str::replaceFirst(Str::finish($this->getRootNamespace(), '\\'), '', $name);
+        return $this->getSrcPath() . str_replace('\\', '/', $name) . '.php';
     }
 
     /**
@@ -230,7 +234,7 @@ abstract class GenerateCommand extends Command
     protected function makeDirectory($path)
     {
         if (!Filesystem::isDirectory(dirname($path))) {
-            Filesystem::makeDirectory(dirname($path), 0777, true, true);
+            Filesystem::makeDirectory(dirname($path), 0755, true, true);
         }
 
         return $path;

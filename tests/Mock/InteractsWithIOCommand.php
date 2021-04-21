@@ -1,6 +1,6 @@
 <?php /** @noinspection PhpUndefinedClassInspection */
 
-namespace Foris\Easy\Console\Tests;
+namespace Foris\Easy\Console\Tests\Mock;
 
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputOption;
@@ -31,6 +31,11 @@ class InteractsWithIOCommand extends \Foris\Easy\Console\Commands\Command
      */
     protected $help = '';
 
+    /**
+     * InteractsWithIOCommand constructor.
+     *
+     * @param null $name
+     */
     public function __construct($name = null)
     {
         parent::__construct($name);

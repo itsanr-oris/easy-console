@@ -1,9 +1,0 @@
-#!/usr/bin/env php
-<?php
-
-require __DIR__ . '/vendor/autoload.php';
-require __DIR__ . '/demo/autoload.php';
-
-$app = new \Foris\Easy\Console\Demo\Application();
-
-$app->run();

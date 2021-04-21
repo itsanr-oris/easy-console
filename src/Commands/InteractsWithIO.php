@@ -171,7 +171,7 @@ trait InteractsWithIO
      */
     public function askWithCompletion($question, $choices, $default = null)
     {
-        $question = new Question($question, $default);
+        $question = $question instanceof Question ? $question : new Question($question, $default);
 
         if (is_callable($choices)) {
             if (method_exists($question, 'setAutocompleterCallback')) {

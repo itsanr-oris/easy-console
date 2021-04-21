@@ -1,0 +1,21 @@
+{
+  "name": "f-oris/console-demo",
+  "description": "",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "F.oris",
+      "email": "us@f-oris.me"
+    }
+  ],
+  "require": {
+    "php": ">=5.5",
+    "f-oris/easy-console": "^2.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Demo\\": "app/"
+    }
+  }
+}

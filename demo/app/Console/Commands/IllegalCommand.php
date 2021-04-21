@@ -1,6 +1,6 @@
 <?php
 
-namespace Foris\Easy\Console\Demo\Commands;
+namespace Demo\Console\Commands;
 
 /**
  * Class OtherClass
