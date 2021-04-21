@@ -47,16 +47,6 @@ class ApplicationTest extends TestCase
     }
 
     /**
-     * Test set app root path.
-     *
-     * @throws \ReflectionException
-     */
-    public function testSetRootPath()
-    {
-        $this->assertEquals('/root_path/', $this->app()->setRootPath('/root_path/')->getRootPath());
-    }
-
-    /**
      * Test get the destination file path.
      *
      * @throws \ReflectionException

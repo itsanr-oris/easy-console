@@ -9,19 +9,12 @@
 [![Total Downloads](https://poser.pugx.org/f-oris/easy-console/downloads)](https://packagist.org/packages/f-oris/easy-console)
 [![License](https://poser.pugx.org/f-oris/easy-console/license)](LICENSE)
 
-## 版本说明
-
-|  版本 | php | 备注  |
-|  ---  | ---- | ---- |
-| < 1.0 | >= 5.5 | 非正式版本，后续移除 |
-| >= 1.0, < 2.0 | >= 7.1 | 正式版本 |
-| >= 2.0 | >= 5.5 | 正式版本，兼容php-5.5运行环境，同时增加了测试辅助相关组件，移除限制Command代码文件只能存放在`src`目录限制等 |
 
 ## 安装使用
 
 #### 环境要求
 
-- >= php-5.5
+- `>=php-5.5`
 
 #### 通过`composer`安装
 
@@ -35,10 +28,10 @@ composer require f-oris/easy-console:^2.0
 
 通过composer引入扩展包后，在项目目录下创建一个文件夹，如命名为`src`，里面创建一个子文件夹`Commands`，一个`Application.php`类文件，同时在项目根目录创建一个入口文件，如命名为`artisan`，各文件相关内容如下
 
+-- Application.php文件内容
+
 ```php
 <?php
-
-# Application.php
 
 namespace Foris\Easy\Console\Demo;
 
@@ -60,11 +53,11 @@ class Application extends \Foris\Easy\Console\Application
 }
 ```
 
+-- artisan 文件内容
+
 ```php
 #!/usr/bin/env php
 <?php
-
-# artisan
 
 require __DIR__ . '/vendor/autoload.php';
 
