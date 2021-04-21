@@ -26,14 +26,14 @@ composer require f-oris/easy-console:^2.0
 
 #### 1. 准备工作
 
-通过composer引入扩展包后，在项目目录下创建一个文件夹，如命名为`src`，里面创建一个子文件夹`Commands`，一个`Application.php`类文件，同时在项目根目录创建一个入口文件，如命名为`artisan`，各文件相关内容如下
+通过composer引入扩展包后，在项目带埋目录创建一个`Console`目录，里面创建一个子文件夹`Commands`，一个`Application.php`类文件，同时在项目根目录创建一个入口文件，如命名为`artisan`，各文件相关内容如下
 
 -- Application.php文件内容
 
 ```php
 <?php
 
-namespace Foris\Easy\Console\Demo;
+namespace Demo\Console;
 
 /**
  * Class Application
@@ -61,7 +61,7 @@ class Application extends \Foris\Easy\Console\Application
 
 require __DIR__ . '/vendor/autoload.php';
 
-$app = new \Foris\Easy\Console\Demo\Application(__DIR__);
+$app = new \Demo\Console\Application(__DIR__);
 
 $app->run();
 ```
@@ -70,14 +70,18 @@ $app->run();
 
 ```
 .
-├── src
-│   ├── Application.php
-│   └── Commands
+├── app
+│   └── Console
+│       ├── Application.php
+│       └── Commands
 ├── artisan
 ├── composer.json
 ├── composer.lock
+├── test.php
 └── vendor
 ```
+
+> app为composer.json文件中，根命名空间对应的文件目录
 
 #### 2. 创建自定义命令
 
@@ -126,8 +130,6 @@ class HelloCommand extends Command
 ```
 
 返回到项目根目录下，执行命令`php artisan hello`即可在终端输出文字内容`Hello world`
-
-> 更多使用方法，参考Wiki文档说明
 
 ## License
 
