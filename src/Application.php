@@ -90,7 +90,7 @@ class Application extends SymfonyApplication
      * @param $rootPath
      * @return $this
      */
-    protected function setRootPath($rootPath)
+    public function setRootPath($rootPath)
     {
         $this->options['root_path'] = empty($rootPath) ? '' : Str::finish($rootPath, '/');
         return $this;
